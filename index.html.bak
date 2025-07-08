@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CMR Technical Campus - Faculty Schedule</title>
+  <!-- Including Tailwind CSS via CDN for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Including Google Fonts for Times New Roman fallback -->
+  <link href="https://fonts.googleapis.com/css2?family=Times+New+Roman&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Times New Roman', serif !important;
+    }
+  </style>
+  <!-- Including PapaParse with a specific version for reliability -->
+  <script src="https://unpkg.com/papaparse@5.3.0/papaparse.min.js"></script>
+</head>
+<body class="bg-gray-100 font-serif flex flex-col min-h-screen">
+  <!-- Header with logo and title -->
+  <header class="bg-orange-600 text-white text-center py-4">
+    <div class="flex items-center justify-center space-x-4">
+      <!-- Logo placeholder (replace src with actual logo path) -->
+      <img src="cmr-logo.png" alt="CMR Technical Campus Logo" class="h-12 w-auto">
+      <h1 class="text-2xl font-bold">CMR Technical Campus</h1>
+    </div>
+  </header>
+
+  <!-- Main content area -->
+  <main class="container mx-auto p-4 flex-grow">
+    <!-- Loading message -->
+    <div id="loading" class="text-center text-gray-600 text-lg">Loading faculty data...</div>
+
+    <!-- Faculty list section -->
+    <section id="faculty-list" class="hidden mb-8">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Faculty List</h2>
+      <table class="w-full border-collapse border border-gray-400 bg-white shadow-md">
+        <thead>
+          <tr class="bg-orange-100">
+            <th class="border border-gray-400 p-3 text-left text-gray-700">Faculty ID</th>
+            <th class="border border-gray-400 p-3 text-left text-gray-700">Name</th>
+            <th class="border border-gray-400 p-3 text-left text-gray-700">Phone Number</th>
+          </tr>
+        </thead>
+        <tbody id="faculty-table-body" class="text-gray-600"></tbody>
+      </table>
+      <a href="#" id="go-to-search" class="mt-4 inline-block bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600 transition duration-200">Go to Search Page</a>
+    </section>
+
+    <!-- Search section -->
+    <section id="search-section" class="hidden mb-8">
+      <h2 class="text-xl font-semibold mb-4 text-gray-800">Search Faculty Schedule</h2>
+      <div class="bg-white p-6 rounded shadow-md border border-gray-200">
+        <div class="mb-4">
+          <label for="faculty-select" class="block text-sm font-medium text-gray-700">Select Faculty:</label>
+          <select id="faculty-select" class="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-orange-500 focus:border-orange-500">
+            <option value="">Select a faculty</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="day-select" class="block text-sm font-medium text-gray-700">Select Day:</label>
+          <select id="day-select" class="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-orange-500 focus:border-orange-500">
+            <option value="">Select a day</option>
+            <option value="MONDAY">MONDAY</option>
+            <option value="TUESDAY">TUESDAY</option>
+            <option value="WEDNESDAY">WEDNESDAY</option>
+            <option value="THURSDAY">THURSDAY</option>
+            <option value="FRIDAY">FRIDAY</option>
+          </select>
+        </div>
+        <div class="mb-4">
+          <label for="period-select" class="block text-sm font-medium text-gray-700">Select Period:</label>
+          <select id="period-select" class="mt-1 block w-full border border-gray-300 rounded p-2 focus:ring-orange-500 focus:border-orange-500">
+            <option value="">Select a period</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+          </select>
+        </div>
+        <button id="search-button" class="bg-orange-500 text-white py-2 px-4 rounded hover:bg-orange-600 transition duration-200">Search</button>
+      </div>
+      <!-- Search result display -->
+      <div id="search-result" class="mt-4"></div>
+      <a href="#" id="back-to-list" class="mt-4 inline-block bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition duration-200">🔙 Back to Faculty List</a>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-orange-600 text-white text-center py-4 w-full">
+    <p>© CMR Technical Campus</p>
+  </footer>
+
+  <!-- JavaScript for functionality -->
+  <script>
+    // Embedded CSV data (corrected typo: FR Trades to FRIDAY)
+    const csvData = `Faculty_id,Name,Week_Day,Period,Class,Room_Number,Subject,Phone
+F001,John,MONDAY,1,CSE A,101,Python,9876543210
+F001,John,MONDAY,2,CSE B,102,OS,9876543210
+F001,John,MONDAY,3,CSE A,103,Data Structures,9876543210
+F001,John,MONDAY,4,CSE B,104,Algorithms,9876543210
+F001,John,MONDAY,5,CSE A,105,Python,9876543210
+F001,John,MONDAY,6,CSE B,106,OS,9876543210
+F001,John,TUESDAY,1,CSE A,201,Python,9876543210
+F001,John,TUESDAY,2,CSE B,202,OS Lab,9876543210
+F001,John,TUESDAY,3,CSE A,203,Data Structures,9876543210
+F001,John,TUESDAY,4,CSE B,204,Algorithms,9876543210
+F001,John,TUESDAY,5,CSE A,205,Python,9876543210
+F001,John,TUESDAY,6,CSE B,206,OS,9876543210
+F001,John,WEDNESDAY,1,CSE A,301,Python,9876543210
+F001,John,WEDNESDAY,2,CSE B,302,OS,9876543210
+F001,John,WEDNESDAY,3,CSE A,303,Data Structures,9876543210
+F001,John,WEDNESDAY,4,CSE B,304,Algorithms,9876543210
+F001,John,WEDNESDAY,5,CSE A,305,Python,9876543210
+F001,John,WEDNESDAY,6,CSE B,306,OS Lab,9876543210
+F001,John,THURSDAY,1,CSE A,401,Python,9876543210
+F001,John,THURSDAY,2,CSE B,402,OS Lab,9876543210
+F001,John,THURSDAY,3,CSE A,403,Data Structures,9876543210
+F001,John,THURSDAY,4,CSE B,404,Algorithms,9876543210
+F001,John,THURSDAY,5,CSE A,405,Python,9876543210
+F001,John,THURSDAY,6,CSE B,406,OS,9876543210
+F001,John,FRIDAY,1,CSE A,501,Python,9876543210
+F001,John,FRIDAY,2,CSE B,502,OS Lab,9876543210
+F001,John,FRIDAY,3,CSE A,503,Data Structures,9876543210
+F001,John,FRIDAY,4,CSE B,504,Algorithms,9876543210
+F001,John,FRIDAY,5,CSE A,505,Python,9876543210
+F001,John,FRIDAY,6,CSE B,506,OS,9876543210
+F002,Emma,MONDAY,1,IT A,103,SE,9876543221
+F002,Emma,MONDAY,2,IT B,104,SE Lab,9876543221
+F002,Emma,MONDAY,3,IT A,105,Data Structures,9876543221
+F002,Emma,MONDAY,4,IT B,106,Algorithms,9876543221
+F002,Emma,MONDAY,5,IT A,107,SE,9876543221
+F002,Emma,MONDAY,6,IT B,108,SE Lab,9876543221
+F002,Emma,TUESDAY,1,IT A,202,SE,9876543221
+F002,Emma,TUESDAY,2,IT B,203,SE Lab,9876543221
+F002,Emma,TUESDAY,3,IT A,204,Data Structures,9876543221
+F002,Emma,TUESDAY,4,IT B,205,Algorithms,9876543221
+F002,Emma,TUESDAY,5,IT A,206,SE,9876543221
+F002,Emma,TUESDAY,6,IT B,207,SE Lab,9876543221
+F002,Emma,WEDNESDAY,1,IT A,302,SE,9876543221
+F002,Emma,WEDNESDAY,2,IT B,303,SE Lab,9876543221
+F002,Emma,WEDNESDAY,3,IT A,304,Data Structures,9876543221
+F002,Emma,WEDNESDAY,4,IT B,305,Algorithms,9876543221
+F002,Emma,WEDNESDAY,5,IT A,306,SE,9876543221
+F002,Emma,WEDNESDAY,6,IT B,307,SE Lab,9876543221
+F002,Emma,THURSDAY,1,IT A,402,SE,9876543221
+F002,Emma,THURSDAY,2,IT B,403,SE Lab,9876543221
+F002,Emma,THURSDAY,3,IT A,404,Data Structures,9876543221
+F002,Emma,THURSDAY,4,IT B,405,Algorithms,9876543221
+F002,Emma,THURSDAY,5,IT A,406,SE,9876543221
+F002,Emma,THURSDAY,6,IT B,407,SE Lab,9876543221
+F002,Emma,FRIDAY,1,IT A,502,SE,9876543221
+F002,Emma,FRIDAY,2,IT B,503,SE Lab,9876543221
+F002,Emma,FRIDAY,3,IT A,504,Data Structures,9876543221
+F002,Emma,FRIDAY,4,IT B,505,Algorithms,9876543221
+F002,Emma,FRIDAY,5,IT A,506,SE,9876543221
+F002,Emma,FRIDAY,6,IT B,507,SE Lab,9876543221
+F003,Ravi,MONDAY,1,CSE A,105,OS,9876543232
+F003,Ravi,MONDAY,2,CSE B,106,OS Lab,9876543232
+F003,Ravi,MONDAY,3,CSE A,107,Data Structures,9876543232
+F003,Ravi,MONDAY,4,CSE B,108,Algorithms,9876543232
+F003,Ravi,MONDAY,5,CSE A,109,OS,9876543232
+F003,Ravi,MONDAY,6,CSE B,110,OS Lab,9876543232
+F003,Ravi,TUESDAY,1,CSE A,203,Python,9876543232
+F003,Ravi,TUESDAY,2,CSE B,204,OS Lab,9876543232
+F003,Ravi,TUESDAY,3,CSE A,205,Data Structures,9876543232
+F003,Ravi,TUESDAY,4,CSE B,206,Algorithms,9876543232
+F003,Ravi,TUESDAY,5,CSE A,207,Python,9876543232
+F003,Ravi,TUESDAY,6,CSE B,208,OS,9876543232
+F003,Ravi,WEDNESDAY,1,CSE A,303,Python,9876543232
+F003,Ravi,WEDNESDAY,2,CSE B,304,OS,9876543232
+F003,Ravi,WEDNESDAY,3,CSE A,305,Data Structures,9876543232
+F003,Ravi,WEDNESDAY,4,CSE B,306,Algorithms,9876543232
+F003,Ravi,WEDNESDAY,5,CSE A,307,Python,9876543232
+F003,Ravi,WEDNESDAY,6,CSE B,308,OS Lab,9876543232
+F003,Ravi,THURSDAY,1,CSE A,403,Python,9876543232
+F003,Ravi,THURSDAY,2,CSE B,404,OS Lab,9876543232
+F003,Ravi,THURSDAY,3,CSE A,405,Data Structures,9876543232
+F003,Ravi,THURSDAY,4,CSE B,406,Algorithms,9876543232
+F003,Ravi,THURSDAY,5,CSE A,407,Python,9876543232
+F003,Ravi,THURSDAY,6,CSE B,408,OS,9876543232
+F003,Ravi,FRIDAY,1,CSE A,503,Python,9876543232
+F003,Ravi,FRIDAY,2,CSE B,504,OS Lab,9876543232
+F003,Ravi,FRIDAY,3,CSE A,505,Data Structures,9876543232
+F003,Ravi,FRIDAY,4,CSE B,506,Algorithms,9876543232
+F003,Ravi,FRIDAY,5,CSE A,507,Python,9876543232
+F003,Ravi,FRIDAY,6,CSE B,508,OS,9876543232
+F004,Anjali,MONDAY,1,IT A,107,Python,9876543243
+F004,Anjali,MONDAY,2,IT B,108,SE,9876543243
+F004,Anjali,MONDAY,3,IT A,109,Data Structures,9876543243
+F004,Anjali,MONDAY,4,IT B,110,Algorithms,9876543243
+F004,Anjali,MONDAY,5,IT A,111,Python,9876543243
+F004,Anjali,MONDAY,6,IT B,112,SE,9876543243
+F004,Anjali,TUESDAY,1,IT A,204,SE,9876543243
+F004,Anjali,TUESDAY,2,IT B,205,SE Lab,9876543243
+F004,Anjali,TUESDAY,3,IT A,206,Data Structures,9876543243
+F004,Anjali,TUESDAY,4,IT B,207,Algorithms,9876543243
+F004,Anjali,TUESDAY,5,IT A,208,SE,9876543243
+F004,Anjali,TUESDAY,6,IT B,209,SE Lab,9876543243
+F004,Anjali,WEDNESDAY,1,IT A,304,SE,9876543243
+F004,Anjali,WEDNESDAY,2,IT B,305,SE Lab,9876543243
+F004,Anjali,WEDNESDAY,3,IT A,306,Data Structures,9876543243
+F004,Anjali,WEDNESDAY,4,IT B,307,Algorithms,9876543243
+F004,Anjali,WEDNESDAY,5,IT A,308,SE,9876543243
+F004,Anjali,WEDNESDAY,6,IT B,309,SE Lab,9876543243
+F004,Anjali,THURSDAY,1,IT A,404,SE,9876543243
+F004,Anjali,THURSDAY,2,IT B,405,SE Lab,9876543243
+F004,Anjali,THURSDAY,3,IT A,406,Data Structures,9876543243
+F004,Anjali,THURSDAY,4,IT B,407,Algorithms,9876543243
+F004,Anjali,THURSDAY,5,IT A,408,SE,9876543243
+F004,Anjali,THURSDAY,6,IT B,409,SE Lab,9876543243
+F004,Anjali,FRIDAY,1,IT A,502,SE,9876543243
+F004,Anjali,FRIDAY,2,IT B,503,SE Lab,9876543243
+F004,Anjali,FRIDAY,3,IT A,504,Data Structures,9876543243
+F004,Anjali,FRIDAY,4,IT B,505,Algorithms,9876543243
+F004,Anjali,FRIDAY,5,IT A,506,SE,9876543243
+F004,Anjali,FRIDAY,6,IT B,507,SE Lab,9876543243`;
+
+    // Initializing variables
+    let facultyData = [];
+    let currentView = 'faculty-list';
+
+    // Loading CSV data
+    function loadData() {
+      Papa.parse(csvData, {
+        header: true,
+        skipEmptyLines: true,
+        transformHeader: header => header.trim().replace(/^"|"$/g, ''),
+        transform: value => value.trim().replace(/^"|"$/g, ''),
+        complete: results => {
+          facultyData = results.data;
+          // Hiding loading message
+          document.getElementById('loading').classList.add('hidden');
+          // Showing faculty list
+          showFacultyList();
+        },
+        error: err => {
+          console.error('Error parsing CSV:', err);
+          document.getElementById('loading').innerHTML = 'Error loading faculty data.';
+        }
+      });
+    }
+
+    // Displaying faculty list
+    function showFacultyList() {
+      const facultyList = [...new Map(facultyData.map(item => [item['Faculty_id'], item])).values()];
+      const tableBody = document.getElementById('faculty-table-body');
+      tableBody.innerHTML = '';
+      facultyList.forEach(faculty => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border border-gray-400 p-3">${faculty['Faculty_id']}</td>
+          <td class="border border-gray-400 p-3">${faculty['Name']}</td>
+          <td class="border border-gray-400 p-3">${faculty['Phone']}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      // Populating faculty dropdown
+      const facultySelect = document.getElementById('faculty-select');
+      facultySelect.innerHTML = '<option value="">Select a faculty</option>';
+      facultyList.forEach(faculty => {
+        const option = document.createElement('option');
+        option.value = faculty['Faculty_id'];
+        option.textContent = `${faculty['Name']} (${faculty['Faculty_id']})`;
+        facultySelect.appendChild(option);
+      });
+
+      // Showing faculty list section
+      document.getElementById('faculty-list').classList.remove('hidden');
+      document.getElementById('search-section').classList.add('hidden');
+      currentView = 'faculty-list';
+    }
+
+    // Switching to search view
+    function showSearch() {
+      document.getElementById('faculty-list').classList.add('hidden');
+      document.getElementById('search-section').classList.remove('hidden');
+      document.getElementById('search-result').innerHTML = '';
+      currentView = 'search';
+    }
+
+    // Handling search functionality
+    function performSearch() {
+      const facultyId = document.getElementById('faculty-select').value;
+      const day = document.getElementById('day-select').value;
+      const period = document.getElementById('period-select').value;
+      const resultDiv = document.getElementById('search-result');
+
+      if (!facultyId || !day || !period) {
+        resultDiv.innerHTML = '<p class="text-red-500">Please select all fields.</p>';
+        return;
+      }
+
+      const match = facultyData.find(row =>
+        row['Faculty_id'] === facultyId &&
+        row['Week_Day'] === day &&
+        row['Period'] === period
+      );
+
+      if (match) {
+        resultDiv.innerHTML = `
+          <div class="bg-white p-4 rounded shadow-md border border-gray-200">
+            <p class="text-gray-700"><strong>Name:</strong> ${match['Name']}</p>
+            <p class="text-gray-700"><strong>Class:</strong> ${match['Class']}</p>
+            <p class="text-gray-700"><strong>Room No.:</strong> ${match['Room_Number']}</p>
+            <p class="text-gray-700"><strong>Subject:</strong> ${match['Subject']}</p>
+          </div>
+        `;
+      } else {
+        resultDiv.innerHTML = '<p class="text-red-500">No record found.</p>';
+      }
+    }
+
+    // Setting up event listeners
+    document.getElementById('go-to-search').addEventListener('click', e => { e.preventDefault(); showSearch(); });
+    document.getElementById('back-to-list').addEventListener('click', e => { e.preventDefault(); showFacultyList(); });
+    document.getElementById('search-button').addEventListener('click', performSearch);
+
+    // Initializing the app
+    loadData();
+  </script>
+</body>
+</html>
