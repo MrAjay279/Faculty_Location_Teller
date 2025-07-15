@@ -40,6 +40,7 @@
             <th class="border border-gray-400 p-3 text-left text-gray-700">Faculty ID</th>
             <th class="border border-gray-400 p-3 text-left text-gray-700">Name</th>
             <th class="border border-gray-400 p-3 text-left text-gray-700">Phone Number</th>
+            <th class="border border-gray-400 p-3 text-left text-gray-700">Cabin Address</Address></th>
           </tr>
         </thead>
         <tbody id="faculty-table-body" class="text-gray-600"></tbody>
@@ -66,6 +67,7 @@
             <option value="WEDNESDAY">WEDNESDAY</option>
             <option value="THURSDAY">THURSDAY</option>
             <option value="FRIDAY">FRIDAY</option>
+            <option value="SATURDAY">SATURDAY</option>
           </select>
         </div>
         <div class="mb-4">
@@ -96,29 +98,27 @@
   <!-- JavaScript for functionality -->
   <script>
     // Embedded CSV data (corrected typo: FR Trades to FRIDAY)
-    const csvData = `Faculty_id,Name,Week_Day,Period,Class,Room_Number,Subject,Phone
-F001, S. Kiran, MONDAY, 1, II CSM A, 119, Operating Systems, 9704838922
-F001, S. Kiran, MONDAY, 4, II CSM B, 130 & 132, Operating Systems Lab, 9704838922
-F001, S. Kiran, MONDAY, 5, II CSM B, 130 & 132, Operating Systems Lab, 9704838922
-F001, S. Kiran, MONDAY, 6, II CSM B, 130 & 132, Operating Systems Lab, 9704838922
-F001, S. Kiran, TUESDAY, 1, II CSM C, 130 & 132, NodeJs Lab, 9704838922
-F001, S. Kiran, TUESDAY, 2, II CSM C, 130 & 132, NodeJs Lab, 9704838922
-F001, S. Kiran, TUESDAY, 4, II CSM B, 120, Operating Systems, 9704838922
-F001, S. Kiran, WEDNESDAY, 1, II CSM A B C D, NaN, Training, 9704838922
-F001, S. Kiran, WEDNESDAY, 1, II CSM B, 120, Operating Systems, 9704838922
-F001, S. Kiran, WEDNESDAY, 2, II CSM A B C D, NaN, Training, 9704838922
-F001, S. Kiran, WEDNESDAY, 3, II CSM A B C D, NaN, Training, 9704838922
-F001, S. Kiran, WEDNESDAY, 4, II CSM A, 119, Operating Systems, 9704838922
-F001, S. Kiran, WEDNESDAY, 4, II CSM A B C D, NaN, Training, 9704838922
-F001, S. Kiran, WEDNESDAY, 5, II CSM A B C D, NaN, Training, 9704838922
-F001, S. Kiran, WEDNESDAY, 6, II CSM A B C D, NaN, Training, 9704838922
-F001, S. Kiran, THURSDAY, 1, II CSM B, 120, Operating Systems, 9704838922
-F001, S. Kiran, THURSDAY, 3, II CSM A, 119, Operating Systems, 9704838922
-F001, S. Kiran, FRIDAY, 1, II CSM A, 130 & 132, Operating Systems Lab, 9704838922
-F001, S. Kiran, FRIDAY, 2, II CSM A, 130 & 132, Operating Systems Lab, 9704838922
-F001, S. Kiran, FRIDAY, 3, II CSM A, 130 & 132, Operating Systems Lab, 9704838922
-F001, S. Kiran, SATURDAY, 2, II CSM B, 120, Operating Systems, 9704838922
-F001, S. Kiran, SATURDAY, 5, II CSM A, 119, Operating Systems, 9704838922
+    const csvData = `Faculty_id,Name,Week_Day,Period,Class,Room_Number,Subject,Phone, Cabin
+F001, S. Kiran, MONDAY, 1, II CSM A, 119, Operating Systems, 9704838922, Cabin Location
+F001, S. Kiran, MONDAY, 4, II CSM B, 130 & 132, Operating Systems Lab, 9704838922, Cabin Location
+F001, S. Kiran, MONDAY, 5, II CSM B, 130 & 132, Operating Systems Lab, 9704838922, Cabin Location
+F001, S. Kiran, MONDAY, 6, II CSM B, 130 & 132, Operating Systems Lab, 9704838922, Cabin Location
+F001, S. Kiran, TUESDAY, 1, II CSM C, 130 & 132, NodeJs Lab, 9704838922, Cabin Location
+F001, S. Kiran, TUESDAY, 2, II CSM C, 130 & 132, NodeJs Lab, 9704838922, Cabin Location
+F001, S. Kiran, TUESDAY, 4, II CSM B, 120, Operating Systems, 9704838922, Cabin Location
+F001, S. Kiran, WEDNESDAY, 1, II CSM B, 120, Operating Systems / Training, 9704838922, Cabin Location
+F001, S. Kiran, WEDNESDAY, 2, II CSM A B C D, NaN, Training, 9704838922, Cabin Location
+F001, S. Kiran, WEDNESDAY, 3, II CSM A B C D, NaN, Training, 9704838922, Cabin Location
+F001, S. Kiran, WEDNESDAY, 4, II CSM A, 119, Operating Systems / Training, 9704838922, Cabin Location
+F001, S. Kiran, WEDNESDAY, 5, II CSM A B C D, NaN, Training, 9704838922, Cabin Location
+F001, S. Kiran, WEDNESDAY, 6, II CSM A B C D, NaN, Training, 9704838922, Cabin Location
+F001, S. Kiran, THURSDAY, 1, II CSM B, 120, Operating Systems, 9704838922, Cabin Location
+F001, S. Kiran, THURSDAY, 3, II CSM A, 119, Operating Systems, 9704838922, Cabin Location
+F001, S. Kiran, FRIDAY, 1, II CSM A, 130 & 132, Operating Systems Lab, 9704838922, Cabin Location
+F001, S. Kiran, FRIDAY, 2, II CSM A, 130 & 132, Operating Systems Lab, 9704838922, Cabin Location
+F001, S. Kiran, FRIDAY, 3, II CSM A, 130 & 132, Operating Systems Lab, 9704838922, Cabin Location
+F001, S. Kiran, SATURDAY, 2, II CSM B, 120, Operating Systems, 9704838922, Cabin Location
+F001, S. Kiran, SATURDAY, 5, II CSM A, 119, Operating Systems, 9704838922, Cabin Location
 F002,Emma,MONDAY,1,IT A,103,SE,9876543221
 F002,Emma,MONDAY,2,IT B,104,SE Lab,9876543221
 F002,Emma,MONDAY,3,IT A,105,Data Structures,9876543221
@@ -246,6 +246,7 @@ F004,Anjali,FRIDAY,6,IT B,507,SE Lab,9876543243`;
           <td class="border border-gray-400 p-3">${faculty['Faculty_id']}</td>
           <td class="border border-gray-400 p-3">${faculty['Name']}</td>
           <td class="border border-gray-400 p-3">${faculty['Phone']}</td>
+          <td class="border border-gray-400 p-3">${faculty['Cabin']}</td>
         `;
         tableBody.appendChild(row);
       });
@@ -296,9 +297,12 @@ F004,Anjali,FRIDAY,6,IT B,507,SE Lab,9876543243`;
         resultDiv.innerHTML = `
           <div class="bg-white p-4 rounded shadow-md border border-gray-200">
             <p class="text-gray-700"><strong>Name:</strong> ${match['Name']}</p>
+            <p class="text-gray-700"><strong>Day:</strong> ${match['Week_Day']}</p>
+            <p class="text-gray-700"><strong>Period:</strong> ${match['Period']}</p>
             <p class="text-gray-700"><strong>Class:</strong> ${match['Class']}</p>
             <p class="text-gray-700"><strong>Room No.:</strong> ${match['Room_Number']}</p>
             <p class="text-gray-700"><strong>Subject:</strong> ${match['Subject']}</p>
+            <p class="text-gray-700"><strong>Phone Number:</strong> ${match['Phone']}</p>
           </div>
         `;
       } else {
